@@ -1,0 +1,70 @@
+name: Deploy Helm to Server
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ گرفتن کد ریپو خود GitHub
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # 2️⃣ ست کردن SSH key برای اتصال به سرور
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.1
+        with:
+          ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+
+      # 3️⃣ انتقال فایل‌ها با rsync به سرور
+      - name: Copy files to server
+        run: |
+          rsync -avz \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude 'node_modules/' \
+            ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/ubuntu/bazargam/
+
+
+      - name: Run Helm deployment
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            set -e  # در صورت خطا اجرای script متوقف شود
+
+
+            cd /home/ubuntu/bazargam
+
+            # در صورت استفاده از Git: آخرین تغییرات را pull کن
+            if [ -d ".git" ]; then
+              git reset --hard
+              git pull origin master
+            fi
+
+
+            helm upgrade --install mirab . \
+              -n mirab \
+              --create-namespace \
+              --values values.yaml
+
+
+
+
+
+Secret Name	Value
+SERVER_SSH_KEY	کلید خصوصی SSH سرور
+SSH_USER	ubuntu
+SSH_HOST	ip-سرور-شما
+GH_TOKEN	(اختیاری) GitHub Personal Access Token
+
+
+ایجاد SSH Key برای سرور:
+ssh-keygen -t ed25519 -f server_key
+ssh-copy-id -i server_key.pub ubuntu@your-server-ip
+cat server_key

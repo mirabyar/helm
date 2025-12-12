@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sensor-service
+  labels:
+    app: sensor-service
+spec:
+  replicas: {{ .Values.sensorService.replicaCount }}
+  selector:
+    matchLabels:
+      app: sensor-service
+  template:
+    metadata:
+      labels:
+        app: sensor-service
+      annotations:
+        {{- if .Values.sensorService.env }}
+        checksum/config: {{ include (print $.Template.BasePath "/sensorService/configmap.yaml") . | sha256sum }}
+        {{- end }}
+    spec:
+    
+      {{- if .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.global.imagePullSecrets | nindent 6 }}
+      {{- end }}
+
+      affinity: {{- toYaml .Values.sensorService.affinity | nindent 8 }}
+      tolerations: {{- toYaml .Values.sensorService.tolerations | nindent 8 }}
+      nodeSelector: {{- toYaml .Values.sensorService.nodeSelector | nindent 8 }}
+
+      containers:
+        - name: sensor-service
+          image: "{{ .Values.global.baseImageRepo}}/{{ .Values.sensorService.image.name }}:{{ .Values.sensorService.image.tag }}"
+          imagePullPolicy: {{ .Values.sensorService.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.sensorService.service.port }}
+          resources:
+            {{- toYaml .Values.sensorService.resources | nindent 12 }}
+
+
+        - name: sensor-service
+          envFrom:
+            {{- if .Values.sensorService.env }}
+            - configMapRef:
+                name: sensor-service-config
+            {{- end }}
+            
+          env:
+            {{- if and .Values.sensorService.secret .Values.sensorService.secret.enabled .Values.sensorService.secret.data }}
+            {{- range $key, $value := .Values.sensorService.secret.data }}
+            - name: {{ $key }}
+              valueFrom:
+                secretKeyRef:
+                  name: sensor-service-secret
+                  key: {{ $key }}
+            {{- end }}
+            {{- end }}
+            
+            {{- if .Values.sensorService.secret.externalSecrets }}
+            {{- range .Values.sensorService.secret.externalSecrets }}
+            - name: {{ .envName }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .secretName }}
+                  key: {{ .key }}
+            {{- end }}
+            {{- end }}
+
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: sensor-service-pvc

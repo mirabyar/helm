@@ -1,0 +1,10 @@
+{{- if .Values.sensorService.env }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sensor-service-config
+data:
+  {{- range $key, $value := .Values.sensorService.env }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+{{- end }}

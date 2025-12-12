@@ -1,0 +1,23 @@
+{{- if and .Values.sensorService.ingress .Values.sensorService.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sensor-service-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  {{- with .Values.sensorService.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  rules:
+    - host: {{ .Values.sensorService.ingress.host }}
+      http:
+        paths:
+          - path: {{ .Values.sensorService.ingress.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: sensor-service
+                port:
+                  number: {{ .Values.sensorService.service.port }}
+{{- end }}

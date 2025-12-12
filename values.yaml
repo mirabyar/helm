@@ -1,0 +1,156 @@
+global:
+  baseImageRepo: registry.mirabyar.ir
+  imagePullSecrets:
+  - name: mirab-registry-secret
+  domains:
+    mirab: &domain_bazargam "mirabyar.ir"
+    admin: &domain_admin "admin.mirabyar.ir"
+    externalIp: &externalIp 185.239.106.238
+
+sensorService:
+  enabled: true
+  image:
+    name: mirab-sensor-service
+    tag: latest
+    pullPolicy: Always
+  replicaCount: 1
+  env:
+    USE_MONGODB: "false"
+    APP_NAME: "well"
+    PORT: "3000"
+    HOST: "0.0.0.0"
+  pvc:
+    size: 200Mi
+    storageClassName: standard
+  service:
+    port: 3000
+    type: ClusterIP
+  ingress:
+    enabled: true
+    annotations:
+      external-dns.alpha.kubernetes.io/target: *externalIp
+    host: sensor.example.com
+    path: /
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+  hpa:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPU: 70
+  pdb:
+    enabled: false
+    minAvailable: 1
+  secret:
+    enabled: true
+    data:
+      DB_HOST: "postgres-service"
+    externalSecrets:
+    - envName: "REDIS_PASSWORD"
+      secretName: "mirab-redis"
+      key: "redis-password"
+    - envName: "POSTGRES_PASSWORD"
+      secretName: "mirab-postgresql"
+      key: "postgres-password"
+
+# sensorService:
+#   enabled: true
+#   replicas: 1
+#   image:
+#     repository: mirab-sensor-service
+#     tag: latest
+#     pullPolicy: IfNotPresent
+#   env:
+#     APP_NAME: well
+#     PORT: 3000
+#     HOST: 0.0.0.0
+#     USE_MONGODB: "false"
+#     POSTGRES_DB: well
+#   ingress:
+#     enabled: true
+#     host: api.example.com
+#     path: /
+#   resources:
+#     limits:
+#       cpu: "500m"
+#       memory: "512Mi"
+#     requests:
+#       cpu: "200m"
+#       memory: "256Mi"
+#   hpa:
+#     enabled: true
+#     minReplicas: 1
+#     maxReplicas: 2
+#     cpuUtilization: 80
+#   persistence:
+#     enabled: true
+#     size: 200Mi
+#     mountPath: /app/logs
+#     storageClass: longhorn
+
+redis:
+  enabled: true
+  replica:
+    replicaCount: 0
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 200m
+    limits:
+      memory: 1Gi
+      cpu: 500m
+  password: ""
+  master:
+    persistence:
+      size: 200Mi
+
+# minio:
+#   enabled: true
+#   auth:
+#     rootPassword: ""
+#   apiIngress:
+#     enabled: true
+#     hostname: api.example.com
+#     path: /file/(.*)
+#     pathType: ImplementationSpecific
+#     annotations:
+#       nginx.ingress.kubernetes.io/rewrite-target: /$1
+#       kubernetes.io/ingress.class: nginx
+#       nginx.ingress.kubernetes.io/ssl-redirect: "false"
+#       nginx.ingress.kubernetes.io/use-regex: "true"
+#     secrets:
+#     - bazargam-admin-pishgaman-top
+#   persistence:
+#     size: 75Gi
+#   resources:
+#     limits:
+#       cpu: 3
+#       memory: 6Gi
+#     requests:
+#       cpu: 500m
+#       memory: 512Mi
+
+postgresql:
+  enabled: true
+  username: postgres
+  database: well
+  password: ""
+  primary:
+    persistence:
+      enabled: true
+      size: 1Gi
+    resources:
+      requests:
+        memory: 512Mi
+        cpu: 250m
+      limits:
+        memory: 1Gi
+        cpu: 500m
+    service:
+      type: ClusterIP
+      port: 5432
