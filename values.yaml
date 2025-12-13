@@ -1,16 +1,17 @@
 global:
   baseImageRepo: registry.mirabyar.ir
   imagePullSecrets:
-    - name: mirab-registry-secret
+  - name: mirab-registry-secret
   domains:
     mirab: &domain_bazargam "mirabyar.ir"
     admin: &domain_admin "admin.mirabyar.ir"
     externalIp: &externalIp 185.239.106.238
+
 sensorService:
   enabled: true
   image:
     name: mirab-sensor-service
-    tag: fbbe3c0
+    tag: 11e06da
     pullPolicy: Always
   replicaCount: 1
   env:
@@ -50,13 +51,14 @@ sensorService:
     data:
       DB_HOST: "postgres-service"
     externalSecrets:
-      - envName: "REDIS_PASSWORD"
-        secretName: "mirab-redis"
-        key: "redis-password"
-      - envName: "POSTGRES_PASSWORD"
-        secretName: "mirab-postgresql"
-        key: "postgres-password"
-  version: fbbe3c0
+    - envName: "REDIS_PASSWORD"
+      secretName: "mirab-redis"
+      key: "redis-password"
+    - envName: "POSTGRES_PASSWORD"
+      secretName: "mirab-postgresql"
+      key: "postgres-password"
+  version: 11e06da
+
 # sensorService:
 #   enabled: true
 #   replicas: 1
