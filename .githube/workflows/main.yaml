@@ -1,0 +1,57 @@
+name: Deploy Helm to Server
+
+on:
+  push:
+    branches:
+    - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.8.1
+      with:
+        ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+
+    - name: Create deployment package
+      run: |
+        tar -czf helm-chart.tar.gz .
+
+    - name: Deploy to server
+      run: |
+        scp -o StrictHostKeyChecking=no \
+            -o ConnectTimeout=30 \
+            helm-chart.tar.gz ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/
+
+        ssh -o StrictHostKeyChecking=no \
+            -o ConnectTimeout=30 \
+            -o ServerAliveInterval=60 \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+
+        set -e
+
+        DEPLOY_DIR="/home/helm/repo"
+
+        # Create directory
+        mkdir -p $DEPLOY_DIR
+
+        # Extract files
+        echo "📦 Extracting chart files..."
+        tar -xzf /tmp/helm-chart.tar.gz -C $DEPLOY_DIR
+        rm /tmp/helm-chart.tar.gz
+
+        # Deploy with Helm
+        cd $DEPLOY_DIR
+        echo "🚀 Deploying with Helm..."
+        helm upgrade --install mirab . \
+          --namespace mirab \
+          --create-namespace \
+          -f values.yaml
+
+        echo "✅ Deployment complete!"
+        EOF
