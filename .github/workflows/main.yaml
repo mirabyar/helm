@@ -36,9 +36,10 @@ jobs:
 
         set -e
 
-        DEPLOY_DIR="/home/helm/repo"
+        DEPLOY_DIR="$HOME/helm-deploy"
 
-        # Create directory
+        # Clean and create directory
+        rm -rf $DEPLOY_DIR
         mkdir -p $DEPLOY_DIR
 
         # Extract files
