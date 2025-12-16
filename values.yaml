@@ -111,9 +111,6 @@ redis:
 
 timescaledb:
   enabled: true
-  auth:
-  secretKeys:
-    adminPasswordKey: "timescaledb-password"
   persistence:
     enabled: true
     size: 1Gi
