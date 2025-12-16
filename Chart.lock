@@ -5,5 +5,8 @@ dependencies:
 - name: redis
   repository: https://charts.bitnami.com/bitnami
   version: 23.2.12
-digest: sha256:fa592f0ed87780e406d2f1b22dc51eebcdde8320850be1c3b73fd66dedecd56a
-generated: "2025-11-21T15:35:07.998312627+03:30"
+- name: timescaledb
+  repository: oci://registry-1.docker.io/cloudpirates
+  version: 0.6.1
+digest: sha256:90b620d5493dec01c79c6182e455530581a4bdd7204495caeb6d1d977df9d1d2
+generated: "2025-12-16T20:38:45.138136108+03:30"

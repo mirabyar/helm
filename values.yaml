@@ -108,31 +108,18 @@ redis:
   master:
     persistence:
       size: 200Mi
-# minio:
-#   enabled: true
-#   auth:
-#     rootPassword: ""
-#   apiIngress:
-#     enabled: true
-#     hostname: api.example.com
-#     path: /file/(.*)
-#     pathType: ImplementationSpecific
-#     annotations:
-#       nginx.ingress.kubernetes.io/rewrite-target: /$1
-#       kubernetes.io/ingress.class: nginx
-#       nginx.ingress.kubernetes.io/ssl-redirect: "false"
-#       nginx.ingress.kubernetes.io/use-regex: "true"
-#     secrets:
-#     - bazargam-admin-pishgaman-top
-#   persistence:
-#     size: 75Gi
-#   resources:
-#     limits:
-#       cpu: 3
-#       memory: 6Gi
-#     requests:
-#       cpu: 500m
-#       memory: 512Mi
+
+timescaledb:
+  enabled: true
+  auth:
+  secretKeys:
+    adminPasswordKey: "timescaledb-password"
+  persistence:
+    enabled: true
+    size: 1Gi
+    accessModes:
+    - ReadWriteOnce
+
 postgresql:
   enabled: true
   username: postgres

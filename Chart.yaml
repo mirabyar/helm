@@ -32,6 +32,10 @@ dependencies:
   version: 23.2.12
   repository: https://charts.bitnami.com/bitnami
   condition: redis.enabled
+- name: timescaledb
+  version: 0.6.1
+  repository: "oci://registry-1.docker.io/cloudpirates"
+  condition: timescaledb.enabled
 
 # - name: minio
 #   version: 16.0.2
