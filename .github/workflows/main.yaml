@@ -20,7 +20,7 @@ jobs:
 
     - name: Create deployment package
       run: |
-        tar -czf helm-chart.tar.gz .
+        tar -czf helm-chart.tar.gz --exclude='helm-chart.tar.gz' --exclude='.git' .
 
     - name: Deploy to server
       run: |
